@@ -29,7 +29,7 @@ spec:
           {{- if .Values.mongodb.auth.existingSecret }}
           existingSecret: {{ .Values.mongodb.auth.existingSecret }}
           {{- end }}
-        architecture: {{ .Values.mongodb.architecture | default "standalone" }}
+        architecture: {{ .Values.mongodb.architecture | default "replicaset" }}
         replicaCount: {{ .Values.mongodb.replicaCount | default 1 }}
         {{- if .Values.mongodb.arbiter }}
         arbiter:

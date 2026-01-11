@@ -127,7 +127,7 @@ hapihub:
     serviceName: mongodb
     database: hapihub
     username: root
-    # replicaSet removed - using standalone mode for simplicity
+    replicaSet: rs0
 
 # =============================================================================
 # DATABASE: MongoDB
@@ -137,13 +137,13 @@ mongodb:
   
   fullnameOverride: "mongodb"
 
-  # Use standalone for simpler deployment (no replica set key required)
-  architecture: standalone
+  # Use replicaset for proper database deployment
+  architecture: replicaset
   replicaCount: 1
-  
+
   image:
-    repository: bitnamilegacy/mongodb
-    tag: 7.0.15-debian-12-r0
+    repository: bitnami/mongodb
+    tag: 8.0.4-debian-12-r2
   
   auth:
     rootUser: root
@@ -177,11 +177,11 @@ mongodb:
   resources:
     requests:
       cpu: 100m
-      memory: 256Mi
-    limits:
-      cpu: 500m
       memory: 512Mi
-  
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
   podDisruptionBudget:
     enabled: false
 
