@@ -142,8 +142,8 @@ mongodb:
   replicaCount: 1
 
   image:
-    repository: bitnami/mongodb
-    tag: 8.0.4-debian-12-r2
+    repository: bitnamilegacy/mongodb
+    tag: 7.0.15-debian-12-r0
   
   auth:
     rootUser: root
