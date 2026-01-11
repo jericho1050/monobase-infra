@@ -190,10 +190,9 @@ mongodb:
     storageClass: "gp2"  # Use EKS default storage class
     size: 10Gi
   
-  # Note: volumePermissions disabled due to restricted PodSecurity policy
-  # EBS permissions handled by fsGroup instead
+  # Enable volumePermissions to fix EBS volume permissions
   volumePermissions:
-    enabled: false
+    enabled: true
   
   # Security context for EKS compatibility
   podSecurityContext:
