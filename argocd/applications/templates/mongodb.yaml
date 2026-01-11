@@ -35,6 +35,10 @@ spec:
         arbiter:
           enabled: {{ .Values.mongodb.arbiter.enabled | default false }}
         {{- end }}
+        {{- if .Values.mongodb.configuration }}
+        configuration: |
+          {{- .Values.mongodb.configuration | nindent 10 }}
+        {{- end }}
         persistence:
           enabled: {{ .Values.mongodb.persistence.enabled | default true }}
           storageClass: {{ .Values.mongodb.persistence.storageClass | default "" }}

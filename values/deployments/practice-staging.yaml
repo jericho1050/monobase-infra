@@ -150,6 +150,37 @@ mongodb:
     # For practice, we'll create a simple secret
     # In production, use External Secrets
     existingSecret: mongodb
+
+  # Provide default mongodb.conf since emptyDir overlay removes it
+  configuration: |
+    # mongod.conf
+    storage:
+      dbPath: /bitnami/mongodb/data/db
+      journal:
+        enabled: true
+      directoryPerDB: false
+    systemLog:
+      destination: file
+      quiet: false
+      logAppend: true
+      logRotate: reopen
+      path: /opt/bitnami/mongodb/logs/mongodb.log
+      verbosity: 0
+    net:
+      port: 27017
+      unixDomainSocket:
+        enabled: true
+        pathPrefix: /opt/bitnami/mongodb/tmp
+      ipv6: false
+      bindIpAll: false
+      bindIp: 127.0.0.1
+    processManagement:
+      fork: false
+      pidFilePath: /opt/bitnami/mongodb/tmp/mongodb.pid
+    setParameter:
+      enableLocalhostAuthBypass: true
+    security:
+      authorization: disabled
   
   arbiter:
     enabled: false
