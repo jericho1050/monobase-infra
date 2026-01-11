@@ -38,6 +38,29 @@ spec:
         {{- if .Values.mongodb.configuration }}
         configuration: |
           {{- .Values.mongodb.configuration | nindent 10 }}
+        # Add init container to copy config from ConfigMap to emptyDir
+        initContainers:
+          - name: copy-config
+            image: {{ .Values.mongodb.image.repository | default "bitnamilegacy/mongodb" }}:{{ .Values.mongodb.image.tag | default "8.0.4-debian-12-r0" }}
+            command: ['sh', '-c', 'cp /configmap/mongodb.conf /conf/mongodb.conf']
+            securityContext:
+              runAsUser: 1001
+              runAsNonRoot: true
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop: ["ALL"]
+              seccompProfile:
+                type: RuntimeDefault
+            volumeMounts:
+              - name: config
+                mountPath: /configmap
+              - name: empty-dir
+                mountPath: /conf
+                subPath: app-conf-dir
+        extraVolumes:
+          - name: config
+            configMap:
+              name: mongodb
         {{- end }}
         persistence:
           enabled: {{ .Values.mongodb.persistence.enabled | default true }}
