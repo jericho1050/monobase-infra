@@ -334,7 +334,9 @@ backup:
 # =============================================================================
 podSecurityStandards:
   enabled: true
-  level: restricted
+  # Use baseline for MongoDB replica set compatibility
+  # (restricted blocks some keyfile operations needed for replica sets)
+  level: baseline
 
 resourceQuotas:
   enabled: false
