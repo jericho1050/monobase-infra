@@ -155,8 +155,22 @@ mongodb:
   
   persistence:
     enabled: true
-    storageClass: ""  # Uses default DOKS storage
-    size: 10Gi  # Smaller for practice
+    storageClass: "gp2"  # Use EKS default storage class
+    size: 10Gi
+  
+  # Fix permissions on EBS volumes
+  volumePermissions:
+    enabled: true
+  
+  # Security context for EKS compatibility
+  podSecurityContext:
+    enabled: true
+    fsGroup: 1001
+  
+  containerSecurityContext:
+    enabled: true
+    runAsUser: 1001
+    runAsNonRoot: true
   
   resources:
     requests:
