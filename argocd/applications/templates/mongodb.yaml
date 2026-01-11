@@ -43,6 +43,22 @@ spec:
         resources:
           {{- toYaml .Values.mongodb.resources | nindent 10 }}
         {{- end }}
+        {{- if .Values.mongodb.volumePermissions }}
+        volumePermissions:
+          {{- toYaml .Values.mongodb.volumePermissions | nindent 10 }}
+        {{- end }}
+        {{- if .Values.mongodb.podSecurityContext }}
+        podSecurityContext:
+          {{- toYaml .Values.mongodb.podSecurityContext | nindent 10 }}
+        {{- end }}
+        {{- if .Values.mongodb.containerSecurityContext }}
+        containerSecurityContext:
+          {{- toYaml .Values.mongodb.containerSecurityContext | nindent 10 }}
+        {{- end }}
+        {{- if .Values.mongodb.podDisruptionBudget }}
+        podDisruptionBudget:
+          {{- toYaml .Values.mongodb.podDisruptionBudget | nindent 10 }}
+        {{- end }}
         {{- if .Values.global.nodePool }}
         # Node pool scheduling - inherited from global.nodePool
         nodeSelector:
