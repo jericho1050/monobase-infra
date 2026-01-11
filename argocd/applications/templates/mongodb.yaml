@@ -44,7 +44,7 @@ spec:
         initContainers:
           - name: copy-config
             image: {{ .Values.mongodb.image.repository | default "bitnamilegacy/mongodb" }}:{{ .Values.mongodb.image.tag | default "8.0.4-debian-12-r0" }}
-            command: ['sh', '-c', 'cp /configmap/mongodb.conf /conf/mongodb.conf']
+            command: ['sh', '-c', 'cp /configmap-source/mongodb.conf /conf/mongodb.conf']
             securityContext:
               runAsUser: 1001
               runAsNonRoot: true
@@ -54,13 +54,13 @@ spec:
               seccompProfile:
                 type: RuntimeDefault
             volumeMounts:
-              - name: config
-                mountPath: /configmap
+              - name: configmap-source
+                mountPath: /configmap-source
               - name: empty-dir
                 mountPath: /conf
                 subPath: app-conf-dir
         extraVolumes:
-          - name: config
+          - name: configmap-source
             configMap:
               name: mongodb
         {{- end }}
