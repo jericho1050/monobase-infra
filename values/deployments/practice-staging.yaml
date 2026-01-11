@@ -127,7 +127,6 @@ hapihub:
     serviceName: mongodb
     database: hapihub
     username: root
-    replicaSet: rs0
 
 # =============================================================================
 # DATABASE: MongoDB
@@ -137,84 +136,24 @@ mongodb:
   
   fullnameOverride: "mongodb"
 
-  # Use replicaset for proper database deployment
-  architecture: replicaset
-  replicaCount: 1
+  # Use standalone for simpler deployment (no replicaset complexity)
+  architecture: standalone
 
   image:
-    repository: bitnamilegacy/mongodb
-    tag: 7.0.15-debian-12-r0
+    repository: bitnami/mongodb
+    tag: "7.0"
   
   auth:
     rootUser: root
-    # For practice, we'll create a simple secret
-    # In production, use External Secrets
-    existingSecret: mongodb
-
-  # Provide default mongodb.conf since emptyDir overlay removes it
-  configuration: |
-    # mongod.conf
-    storage:
-      dbPath: /bitnami/mongodb/data/db
-      journal:
-        enabled: true
-      directoryPerDB: false
-    systemLog:
-      destination: file
-      quiet: false
-      logAppend: true
-      logRotate: reopen
-      path: /opt/bitnami/mongodb/logs/mongodb.log
-      verbosity: 0
-    net:
-      port: 27017
-      unixDomainSocket:
-        enabled: true
-        pathPrefix: /opt/bitnami/mongodb/tmp
-      ipv6: false
-      bindIpAll: false
-      bindIp: 127.0.0.1
-    processManagement:
-      fork: false
-      pidFilePath: /opt/bitnami/mongodb/tmp/mongodb.pid
-    setParameter:
-      enableLocalhostAuthBypass: true
-    security:
-      authorization: disabled
-  
-  arbiter:
-    enabled: false
-  
-  persistence:
-    enabled: true
-    storageClass: "gp2"  # Use EKS default storage class
-    size: 10Gi
-  
-  # Enable volumePermissions to fix EBS volume permissions
-  volumePermissions:
-    enabled: true
-  
-  # Security context for EKS compatibility
-  podSecurityContext:
-    enabled: true
-    fsGroup: 1001
-  
-  containerSecurityContext:
-    enabled: true
-    runAsUser: 1001
-    runAsNonRoot: true
-    readOnlyRootFilesystem: false
+    rootPassword: "practice-mongo-password-123"
   
   resources:
     requests:
       cpu: 100m
-      memory: 512Mi
+      memory: 256Mi
     limits:
-      cpu: 1000m
-      memory: 1Gi
-
-  podDisruptionBudget:
-    enabled: false
+      cpu: 500m
+      memory: 512Mi
 
 # =============================================================================
 # STORAGE: MinIO Object Storage
