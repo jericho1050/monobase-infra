@@ -1,5 +1,8 @@
 # IAM Roles and Policies for EKS
 
+# Get current AWS account ID
+data "aws_caller_identity" "current" {}
+
 # EKS Cluster IAM Role
 resource "aws_iam_role" "cluster" {
   name = "${var.cluster_name}-cluster-role"

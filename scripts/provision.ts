@@ -247,19 +247,65 @@ ${chalk.yellow('Finally, provision the cluster:')}
 
   async terraformApply() {
     console.log(chalk.blue('\n==> Step 5: Terraform Apply'));
-
-    const spinner = ora('Applying infrastructure changes...').start();
+    console.log(chalk.gray('Streaming terraform output (this may take 15-20 minutes for EKS)...\n'));
 
     try {
-      await $`cd ${this.clusterDir} && ${this.terraformCmd} apply tfplan`.quiet();
-      spinner.succeed('Infrastructure provisioned successfully');
+      // Stream output in real-time instead of using .quiet()
+      const proc = Bun.spawn(
+        ['sh', '-c', `cd ${this.clusterDir} && ${this.terraformCmd} apply -auto-approve tfplan`],
+        {
+          stdout: 'pipe',
+          stderr: 'pipe',
+        }
+      );
+
+      // Stream stdout
+      const stdoutReader = proc.stdout.getReader();
+      const stderrReader = proc.stderr.getReader();
+
+      const readStream = async (reader: ReadableStreamDefaultReader<Uint8Array>, isError = false) => {
+        const decoder = new TextDecoder();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const text = decoder.decode(value);
+          // Color terraform output for better visibility
+          if (isError) {
+            process.stderr.write(chalk.red(text));
+          } else {
+            // Highlight key status messages
+            const coloredText = text
+              .replace(/Creating\.\.\./g, chalk.yellow('Creating...'))
+              .replace(/Still creating\.\.\./g, chalk.yellow('Still creating...'))
+              .replace(/Creation complete/g, chalk.green('Creation complete'))
+              .replace(/Destroying\.\.\./g, chalk.red('Destroying...'))
+              .replace(/Destruction complete/g, chalk.red('Destruction complete'))
+              .replace(/Error:/g, chalk.red('Error:'));
+            process.stdout.write(coloredText);
+          }
+        }
+      };
+
+      // Read both streams concurrently
+      await Promise.all([
+        readStream(stdoutReader, false),
+        readStream(stderrReader, true),
+      ]);
+
+      const exitCode = await proc.exited;
+      
+      if (exitCode !== 0) {
+        throw new Error(`Terraform apply failed with exit code ${exitCode}`);
+      }
+
+      console.log(chalk.green('\n✓ Infrastructure provisioned successfully'));
 
       // Clean up plan file
       try {
         await $`cd ${this.clusterDir} && rm -f tfplan`.quiet();
       } catch {}
     } catch (error) {
-      spinner.fail('Terraform apply failed');
+      console.log(chalk.red('\n✗ Terraform apply failed'));
       throw error;
     }
   }
@@ -518,14 +564,55 @@ ${chalk.yellow('Finally, provision the cluster:')}
 
   async terraformDestroy() {
     console.log(chalk.blue('\n==> Destroying Infrastructure'));
-
-    const spinner = ora('Running terraform destroy...').start();
+    console.log(chalk.gray('Streaming terraform output...\n'));
 
     try {
-      await $`cd ${this.clusterDir} && ${this.terraformCmd} destroy -auto-approve`.quiet();
-      spinner.succeed('Infrastructure destroyed successfully');
+      // Stream output in real-time
+      const proc = Bun.spawn(
+        ['sh', '-c', `cd ${this.clusterDir} && ${this.terraformCmd} destroy -auto-approve`],
+        {
+          stdout: 'pipe',
+          stderr: 'pipe',
+        }
+      );
+
+      // Stream stdout
+      const stdoutReader = proc.stdout.getReader();
+      const stderrReader = proc.stderr.getReader();
+
+      const readStream = async (reader: ReadableStreamDefaultReader<Uint8Array>, isError = false) => {
+        const decoder = new TextDecoder();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const text = decoder.decode(value);
+          if (isError) {
+            process.stderr.write(chalk.red(text));
+          } else {
+            const coloredText = text
+              .replace(/Destroying\.\.\./g, chalk.yellow('Destroying...'))
+              .replace(/Still destroying\.\.\./g, chalk.yellow('Still destroying...'))
+              .replace(/Destruction complete/g, chalk.green('Destruction complete'))
+              .replace(/Error:/g, chalk.red('Error:'));
+            process.stdout.write(coloredText);
+          }
+        }
+      };
+
+      await Promise.all([
+        readStream(stdoutReader, false),
+        readStream(stderrReader, true),
+      ]);
+
+      const exitCode = await proc.exited;
+      
+      if (exitCode !== 0) {
+        throw new Error(`Terraform destroy failed with exit code ${exitCode}`);
+      }
+
+      console.log(chalk.green('\n✓ Infrastructure destroyed successfully'));
     } catch (error) {
-      spinner.fail('Terraform destroy failed');
+      console.log(chalk.red('\n✗ Terraform destroy failed'));
       console.log(chalk.yellow('\n⚠️  Check state backup in backups/terraform-state/'));
       throw error;
     }

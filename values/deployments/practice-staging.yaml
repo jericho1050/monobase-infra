@@ -127,7 +127,7 @@ hapihub:
     serviceName: mongodb
     database: hapihub
     username: root
-    replicaSet: rs0
+    # replicaSet removed - using standalone mode for simplicity
 
 # =============================================================================
 # DATABASE: MongoDB
@@ -136,8 +136,9 @@ mongodb:
   enabled: true
   
   fullnameOverride: "mongodb"
-  
-  architecture: replicaset
+
+  # Use standalone for simpler deployment (no replica set key required)
+  architecture: standalone
   replicaCount: 1
   
   image:

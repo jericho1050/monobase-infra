@@ -35,9 +35,9 @@ output "vpc_id" {
   value       = module.eks_cluster.vpc_id
 }
 
-output "node_security_group_id" {
-  description = "Security group ID for worker nodes"
-  value       = module.eks_cluster.node_security_group_id
+output "cluster_security_group_id" {
+  description = "Security group ID for EKS cluster"
+  value       = module.eks_cluster.cluster_security_group_id
 }
 
 output "oidc_provider_arn" {

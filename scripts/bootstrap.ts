@@ -405,6 +405,10 @@ spec:
       return;
     }
 
+    // Fix macOS TLS certificate issues
+    const sslCertFile = process.env.SSL_CERT_FILE || '/etc/ssl/cert.pem';
+    const helmEnv = { ...process.env, SSL_CERT_FILE: sslCertFile };
+
     const spinner = ora('Creating argocd namespace...').start();
     
     try {
@@ -415,18 +419,39 @@ spec:
     }
 
     spinner.start('Adding Argo Helm repository...');
-    await $`helm repo add argo https://argoproj.github.io/argo-helm`.quiet();
-    await $`helm repo update`.quiet();
+    try {
+      await $`helm repo add argo https://argoproj.github.io/argo-helm`.env(helmEnv).quiet();
+    } catch {
+      // Repo might already exist
+    }
+    
+    try {
+      await $`helm repo update`.env(helmEnv).quiet();
     spinner.succeed('Helm repository added');
+    } catch (error) {
+      spinner.warn('Helm repo update had issues, continuing...');
+    }
 
     spinner.start('Installing ArgoCD...');
     try {
+      // Check if helm-values.yaml exists, if not use minimal config
+      const valuesFile = 'infrastructure/argocd/helm-values.yaml';
+      const valuesExist = await Bun.file(valuesFile).exists();
+      
+      if (valuesExist) {
       await $`helm upgrade --install argocd argo/argo-cd \
         --namespace argocd \
         --version 7.7.12 \
-        --values infrastructure/argocd/helm-values.yaml \
+          --values ${valuesFile} \
+          --wait \
+          --timeout 10m`.env(helmEnv).quiet();
+      } else {
+        // Use minimal config if no values file
+        await $`helm upgrade --install argocd argo/argo-cd \
+          --namespace argocd \
         --wait \
-        --timeout 10m`.quiet();
+          --timeout 10m`.env(helmEnv).quiet();
+      }
       
       spinner.succeed('ArgoCD installed successfully');
     } catch (error) {

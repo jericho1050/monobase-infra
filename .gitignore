@@ -45,6 +45,8 @@ terraform/**/kubeconfig.yaml
 # Active cluster configuration (copied from terraform/examples/)
 cluster/
 
+do-cluster
+
 # IDE and OS files
 .vscode/
 .idea/

@@ -19,7 +19,7 @@ provider "aws" {
 }
 
 module "eks_cluster" {
-  source = "../../terraform/modules/aws-eks"
+  source = "../terraform/modules/aws-eks"
 
   cluster_name       = var.cluster_name
   region             = var.region
