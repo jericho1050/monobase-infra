@@ -173,6 +173,7 @@ mongodb:
     enabled: true
     runAsUser: 1001
     runAsNonRoot: true
+    readOnlyRootFilesystem: false
   
   resources:
     requests:
